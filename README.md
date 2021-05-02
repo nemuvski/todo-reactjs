@@ -7,6 +7,10 @@ React.jsを用いて実装されたToDo Listです。
 
 ```shell
 yarn install
+
+# firebase連携のための情報を記入.
+cp .env.example .env
+vi .env
 ```
 
 ## 動作確認・ビルド
