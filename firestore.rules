@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      function isAuthor() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      allow read, create, update, delete: if isAuthor();
+
+      match /todos/{todo} {
+        allow read, create, update, delete: if isAuthor();
+      }
+    }
+  }
+}
