@@ -36,6 +36,29 @@ const get = (uid: AuthenticationUserId): Promise<Array<ToDoTask>> => {
     });
 };
 
+const insert = (uid: AuthenticationUserId, content: string): Promise<ToDoTask> => {
+  const collection = getUserTodosCollection(uid);
+  if (!collection) {
+    throw new Error('ユーザーIDが不明なため、データ作成に失敗しました。');
+  }
+  return collection
+    .add({
+      content,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then((docRef) => {
+      return docRef.get().then((doc) => {
+        const { content, createdAt } = doc.data() as ToDoDocumentData;
+        const { id } = doc;
+        return {
+          id,
+          content,
+          createdAt: createdAt.toDate(),
+        };
+      });
+    });
+};
+
 const remove = (uid: AuthenticationUserId, documentId: string): Promise<void> => {
   const collection = getUserTodosCollection(uid);
   if (!collection) {
@@ -44,4 +67,4 @@ const remove = (uid: AuthenticationUserId, documentId: string): Promise<void> =>
   return collection.doc(documentId).delete();
 };
 
-export default { get, remove };
+export default { get, insert, remove };

@@ -14,17 +14,25 @@ type Props = {
 
 type ContextProps = {
   tasks: Array<ToDoTask>;
+  insert: (content: string) => void;
   remove: (documentId: string) => void;
 };
 
 export const ToDoContext = createContext<ContextProps>({
   tasks: [],
+  insert: () => {},
   remove: () => {},
 });
 
 export const ToDoProvider = ({ children }: Props) => {
   const { currentUser } = useContext(AuthenticationContext);
   const [tasks, setTasks] = useState<Array<ToDoTask>>([]);
+
+  const insert = (content: string) => {
+    ToDoServices.insert(currentUser, content).then((task) => {
+      setTasks([task, ...tasks]);
+    });
+  };
 
   const remove = (documentId: string) => {
     ToDoServices.remove(currentUser, documentId)
@@ -58,5 +66,5 @@ export const ToDoProvider = ({ children }: Props) => {
     };
   }, []);
 
-  return <ToDoContext.Provider value={{ tasks, remove }}>{children}</ToDoContext.Provider>;
+  return <ToDoContext.Provider value={{ tasks, insert, remove }}>{children}</ToDoContext.Provider>;
 };
