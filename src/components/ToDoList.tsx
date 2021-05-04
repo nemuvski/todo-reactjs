@@ -11,7 +11,7 @@ const ToDoList = () => {
     <List style={{ marginTop: 24 }}>
       {tasks.map((task) => {
         return (
-          <ListItem button key={task.id}>
+          <ListItem key={task.id}>
             <ListItemText primary={task.content} secondary={formatDate(task.createdAt)} />
             <ListItemSecondaryAction>
               <IconButton edge='end' aria-label='delete' onClick={() => remove(task.id)}>
