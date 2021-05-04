@@ -6,25 +6,25 @@ type ToDoDocumentData = {
   content: string;
 };
 
-const usersCollection = firestore.collection('users');
+const getUserTodosCollection = (uid: AuthenticationUserId) => {
+  if (!uid) {
+    return null;
+  }
+  return firestore.collection('users').doc(uid).collection('todos');
+};
 
 const get = (uid: AuthenticationUserId): Promise<Array<ToDoTask>> => {
-  if (!uid) {
+  const collection = getUserTodosCollection(uid);
+  if (!collection) {
     throw new Error('ユーザーIDが不明なため、データ取得に失敗しました。');
   }
-  return usersCollection
-    .doc(uid)
-    .collection('todos')
-    .get()
-    .then((data) => {
-      return data.docs.map((doc) => {
-        const { content } = doc.data() as ToDoDocumentData;
-        return {
-          id: doc.id,
-          content,
-        };
-      });
+  return collection.get().then((data) => {
+    return data.docs.map((doc) => {
+      const { content } = doc.data() as ToDoDocumentData;
+      const { id } = doc;
+      return { id, content };
     });
+  });
 };
 
 export default { get };
