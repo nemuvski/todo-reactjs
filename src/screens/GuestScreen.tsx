@@ -1,12 +1,12 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
-import firebase from 'firebase/app';
+import { signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../libs/Firebase';
 import GoogleIcon from '../icons/GoogleIcon';
 
 const GuestScreen = () => {
   const handleClick = () => {
-    auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+    signInWithRedirect(auth, new GoogleAuthProvider());
   };
 
   return (
