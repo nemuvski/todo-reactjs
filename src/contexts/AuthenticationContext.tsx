@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../libs/Firebase';
 import Loading from '../components/Loading';
 
@@ -21,7 +22,7 @@ export const AuthenticationProvider = ({ children }: Props) => {
   const [currentUser, setCurrentUser] = useState<AuthenticationUserId>(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(!user ? null : user.uid);
       setIsLoading(false);
     });

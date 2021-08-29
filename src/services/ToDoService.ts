@@ -1,18 +1,29 @@
-import firebase from 'firebase';
+import {
+  collection as FirestoreCollection,
+  Timestamp as FirestoreTimestamp,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { firestore } from '../libs/Firebase';
 import { ToDoTask } from '../contexts/ToDoContext';
 import { AuthenticationUserId } from '../contexts/AuthenticationContext';
-import { firestore } from '../libs/Firebase';
 
 type ToDoDocumentData = {
   content: string;
-  createdAt: firebase.firestore.Timestamp;
+  createdAt: FirestoreTimestamp;
 };
 
 const getUserTodosCollection = (uid: AuthenticationUserId) => {
   if (!uid) {
     return null;
   }
-  return firestore.collection('users').doc(uid).collection('todos');
+  return FirestoreCollection(doc(firestore, 'users', uid), 'todos');
 };
 
 const get = (uid: AuthenticationUserId): Promise<Array<ToDoTask>> => {
@@ -20,20 +31,17 @@ const get = (uid: AuthenticationUserId): Promise<Array<ToDoTask>> => {
   if (!collection) {
     throw new Error('ユーザーIDが不明なため、データ取得に失敗しました。');
   }
-  return collection
-    .orderBy('createdAt', 'desc')
-    .get()
-    .then((data) => {
-      return data.docs.map((doc) => {
-        const { content, createdAt } = doc.data() as ToDoDocumentData;
-        const { id } = doc;
-        return {
-          id,
-          content,
-          createdAt: createdAt.toDate(),
-        };
-      });
+  return getDocs(query(collection, orderBy('createdAt', 'desc'))).then((data) => {
+    return data.docs.map((doc) => {
+      const { content, createdAt } = doc.data() as ToDoDocumentData;
+      const { id } = doc;
+      return {
+        id,
+        content,
+        createdAt: createdAt.toDate(),
+      };
     });
+  });
 };
 
 const insert = (uid: AuthenticationUserId, content: string): Promise<ToDoTask> => {
@@ -41,22 +49,20 @@ const insert = (uid: AuthenticationUserId, content: string): Promise<ToDoTask> =
   if (!collection) {
     throw new Error('ユーザーIDが不明なため、データ作成に失敗しました。');
   }
-  return collection
-    .add({
-      content,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-    .then((docRef) => {
-      return docRef.get().then((doc) => {
-        const { content, createdAt } = doc.data() as ToDoDocumentData;
-        const { id } = doc;
-        return {
-          id,
-          content,
-          createdAt: createdAt.toDate(),
-        };
-      });
+  return addDoc(collection, {
+    content,
+    createdAt: serverTimestamp(),
+  }).then((docRef) => {
+    return getDoc(docRef).then((doc) => {
+      const { content, createdAt } = doc.data() as ToDoDocumentData;
+      const { id } = doc;
+      return {
+        id,
+        content,
+        createdAt: createdAt.toDate(),
+      };
     });
+  });
 };
 
 const remove = (uid: AuthenticationUserId, documentId: string): Promise<void> => {
@@ -64,7 +70,7 @@ const remove = (uid: AuthenticationUserId, documentId: string): Promise<void> =>
   if (!collection) {
     throw new Error('ユーザーIDが不明なため、データ削除に失敗しました。');
   }
-  return collection.doc(documentId).delete();
+  return deleteDoc(doc(collection, documentId));
 };
 
 export default { get, insert, remove };
